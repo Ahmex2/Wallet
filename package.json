@@ -2,7 +2,7 @@
   "name": "jsonwebtoken",
   "version": "9.0.0",
   "description": "JSON Web Token implementation (symmetric and asymmetric)",
-  "main": "index.js",
+  "main": "SeW.js",
   "nyc": {
     "check-coverage": true,
     "lines": 95,
