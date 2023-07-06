@@ -15,7 +15,7 @@ dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 8000;
-const uri = process.env.MONGODB_URI || 'mongodb+srv://elnegmalsat7:Mhmd@Mhmd012@cluster0.07ibnzi.mongodb.net/?retryWrites=true&w=majority';
+const uri = process.env.MONGODB_URI || 'mongodb+srv://mantooman040:Mhmd@Mhmd012@elfares.cfrqkfi.mongodb.net/?retryWrites=true&w=majority';
 const jwtSecret = process.env.JWT_SECRET || 'eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY4ODMxOTMwOCwiaWF0IjoxNjg4MzE5MzA';
 const serverSelectionTimeoutMS = process.env.SERVER_SELECTION_TIMEOUT_MS || 5000;
 const withdrawalAddress = 'https://www.coinpayments.net/index.php?cmd=acct_balances&action=withdraw&coin=TRX';
