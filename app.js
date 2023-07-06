@@ -1,28 +1,19 @@
-// Import dependencies
-import { createQRCode } from 'qrcode';
-import { validateEmail, validateNumber } from './utils';
-
 // Register form
-const registerForm = document.querySelector('#register-form form');
-registerForm.addEventListener('submit', async (event) => {
-  event.preventDefault();
-
-  const username = registerForm.elements.username.value;
-  const email = registerForm.elements.email.value;
-  const password = registerForm.elements.password.value;
+async function register() {
+  const username = document.querySelector('#register-form input[name="username"]').value;
+  const email = document.querySelector('#register-form input[name="email"]').value;
+  const password = document.querySelector('#register-form input[name="password"]').value;
 
   // Validate input
   if (!username || !email || !password) {
-    alert('Please fill in all fields');
-    return;
+    return alert('Please fill in all fields');
   }
 
   if (!validateEmail(email)) {
-    alert('Please enter a valid email');
-    return;
+    return alert('Please enter a valid email');
   }
 
-  const response = await fetch('/register', {
+  const response = await fetch('http://localhost:8000/register', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -32,33 +23,29 @@ registerForm.addEventListener('submit', async (event) => {
 
   const data = await response.json();
 
-  if (data.success) {
+  if (response.ok) {
     alert('Registration successful!');
+    document.querySelector('#register-form').reset();
   } else {
     alert(data.error);
   }
-});
+}
 
 // Login form
-const loginForm = document.querySelector('#login-form form');
-loginForm.addEventListener('submit', async (event) => {
-  event.preventDefault();
-
-  const email = loginForm.elements.email.value;
-  const password = loginForm.elements.password.value;
+async function login() {
+  const email = document.querySelector('#login-form input[name="email"]').value;
+  const password = document.querySelector('#login-form input[name="password"]').value;
 
   // Validate input
   if (!email || !password) {
-    alert('Please fill in all fields');
-    return;
+    return alert('Please fill in all fields');
   }
 
   if (!validateEmail(email)) {
-    alert('Please enter a valid email');
-    return;
+    return alert('Please enter a valid email');
   }
 
-  const response = await fetch('/login', {
+  const response = await fetch('http://localhost:8000/login', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -68,89 +55,91 @@ loginForm.addEventListener('submit', async (event) => {
 
   const data = await response.json();
 
-  if (data.success) {
-    // Show balance and transaction forms
-    const balanceSection = document.querySelector('#balance');
-    const depositForm = document.querySelector('#deposit-form form');
-    const withdrawForm = document.querySelector('#withdraw-form form');
-    const depositQRSection = document.querySelector('#deposit-qr');
-
-    balanceSection.style.display = 'block';
-    depositForm.style.display = 'block';
-    withdrawForm.style.display = 'block';
-    depositQRSection.style.display = 'none';
-
-    balanceSection.querySelector('#balance-amount').textContent = data.balance;
+  if (response.ok) {
+    localStorage.setItem('token', data.token);
+    loadPage('dashboard');
   } else {
     alert(data.error);
   }
-});
+}
+
+// Get user info
+async function getUserInfo() {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    return;
+  }
+
+  const response = await fetch('http://localhost:8000/users/me', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  const data = await response.json();
+  if (response.ok) {
+    document.getElementById('username').innerText = data.username;
+    document.getElementById('balance').innerText = `$${data.balance.toFixed(2)}`;
+  } else {
+    alert(data.error);
+  }
+}
 
 // Deposit form
-const depositForm = document.querySelector('#deposit-form form');
-depositForm.addEventListener('submit', async (event) => {
-  event.preventDefault();
-
-  const amount = depositForm.elements.amount.value;
+async function deposit() {
+  const amount = parseFloat(document.querySelector('#deposit-form input[name="amount"]').value);
 
   // Validate input
-  if (!validateNumber(amount)) {
-    alert('Please enter a valid amount');
+  if (isNaN(amount) || amount <= 0) {
+    return alert('Please enter a valid amount');
+  }
+
+  const token = localStorage.getItem('token');
+  if (!token) {
     return;
   }
 
-  const response = await fetch('/deposit', {
+  const response = await fetch('http://localhost:8000/transactions/deposit', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ amount })
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ amount }),
   });
 
   const data = await response.json();
-
-  if (data.success) {
-    const depositQRSection = document.querySelector('#deposit-qr');
-    const qrCodeImg = depositQRSection.querySelector('#qr-code');
-
-    depositQRSection.style.display = 'block';
-    qrCodeImg.src = await createQRCode(data.address);
-
+  if (response.ok) {
+    const qrCodeImg = document.querySelector('#deposit-qr img');
+    qrCodeImg.src = await createQRCode(data.depositAddress);
+    document.querySelector('#deposit-qr p').innerText = data.depositAddress;
+    loadPage('deposit');
   } else {
     alert(data.error);
   }
-});
+}
 
 // Withdraw form
-const withdrawForm = document.querySelector('#withdraw-form form');
-withdrawForm.addEventListener('submit', async (event) => {
-  event.preventDefault();
-
-  const amount = withdrawForm.elements.amount.value;
+async function withdraw() {
+  const amount = parseFloat(document.querySelector('#withdraw-form input[name="amount"]').value);
 
   // Validate input
-  if (!validateNumber(amount)) {
-    alert('Please enter a valid amount');
+  if (isNaN(amount) || amount <= 0) {
+    return alert('Please enter a valid amount');
+  }
+
+  const token = localStorage.getItem('token');
+  if (!token) {
     return;
   }
 
-  const response = await fetch('/withdraw', {
+  const response = await fetch('http://localhost:8000/transactions/withdraw', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ amount })
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ amount }),
   });
 
   const data = await response.json();
-
-  if (data.success) {
+  if (response.ok) {
     alert('Withdrawal successful!');
-
-    const balanceSection = document.querySelector('#balance');
-    balanceSection.querySelector('#balance-amount').textContent = data.balance;
-
+    document.querySelector('#withdraw-form').reset();
+    document.getElementById('balance').innerText = `$${data.balance.toFixed(2)}`;
   } else {
     alert(data.error);
   }
-});
+}
