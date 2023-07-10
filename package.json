@@ -3,7 +3,7 @@
     "jose": "^4.14.4",
     "jsonwebtoken": "^9.0.0"
   },
-  "name": "e-wallet",
+  "name": "al faris-wallet",
   "version": "1.0.0",
   "description": "e-wallet el faris",
   "main": "server.js",
