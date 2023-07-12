@@ -1,132 +1,362 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <title>Al-Faris Wallet</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-  </head>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Al Faris-Wallet</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>/* General styles */
 
-  <body>
-    <header>
-      <h1>Al-Faris Wallet</h1>
-    </header>
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f2f2f2;
+}
 
-    <main>
-      <section>
-        <h2>Register/Login</h2>
-        <form id="register-form" autocomplete="off">
-          <div>
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required minlength="5" pattern="[A-Za-z0-9]+" title="Username must contain only letters and numbers (no spaces)">
-          </div>
+header {
+  background-color: #2d3e50;
+  color: #fff;
+  padding: 1em;
+  text-align: center;
+}
 
-          <div>
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email" required>
-          </div>
+header h1 {
+  margin: 0;
+  font-size: 2.5rem;
+}
 
-          <div>
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password">
-          </div>
+main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 2em;
+}
 
-          <div>
-            <button type="submit">Register</button>
-          </div>
-        </form>
-        <div>
-          <button id="login-button">Login</button>
+/* Form styles */
+
+.form-container {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  padding: 2em;
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: 2em;
+}
+
+.form-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 2em;
+}
+
+.form-header h2 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #2d3e50;
+}
+
+.form-header p {
+  margin: 0.5em 0 0;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.form-header button {
+  border: none;
+  background-color: transparent;
+  color: #2d3e50;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: color 0.2s ease;
+}
+
+.form-header button:hover {
+  color: #34495e;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1em;
+}
+
+.form-group label {
+  margin-bottom: 0.5em;
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #2d3e50;
+}
+
+.form-group input {
+  padding: 0.5em;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  transition: border-color 0.2s ease;
+  color: #666;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #2d3e50;
+}
+
+.hidden {
+  display: none;
+}
+
+.form-message {
+  margin-top: 0.5em;
+  font-size: 0.9rem;
+  color: #e74c3c;
+}
+
+.success {
+  color: #2ecc71;
+}
+
+/* Balance styles */
+
+.balance-container {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  padding: 2em;
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: 2em;
+}
+
+.balance-header h2 {
+  margin: 0;
+  font-size: 2rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.balance-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 1em 0;
+}
+
+.balance-amount {
+  margin: 0;
+font-size: 2.5rem;
+  font-weight: bold;
+  color: #2ecc71;
+  text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.2);
+}
+
+.balance-message {
+  margin-top: 0.5em;
+  font-size: 0.9rem;
+  color: #e74c3c;
+}
+
+/* Transaction styles */
+
+.transaction-container {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  padding: 2em;
+  width: 100%;
+  max-width: 400px;
+}
+
+.transaction-header h2 {
+  margin: 0;
+  font-size: 2rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.transaction-forms {
+  display: flex;
+  flex-direction: column;
+  margin-top: 2em;
+}
+
+.transaction-forms form {
+  margin-bottom: 1em;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+}
+
+.input-group-addon {
+  padding: 0.5em;
+  background-color: #ccc;
+  border-radius: 5px 0 0 5px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #2d3e50;
+}
+
+.input-group input {
+  padding: 0.5em;
+  border: 1px solid #ccc;
+  border-radius: 0 5px 5px 0;
+  font-size: 0.9rem;
+  transition: border-color 0.2s ease;
+  color: #666;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #2d3e50;
+}
+
+.transaction-message {
+  margin-top: 0.5em;
+  font-size: 0.9rem;
+  color: #e74c3c;
+}
+
+.transaction-success {
+  color: #2ecc71;
+}
+
+/* Additional styling */
+
+/* Add background color to input fields when they are focused */
+.form-group input:focus {
+  background-color: #f5f5f5;
+}
+
+/* Add border and background color to success messages */
+.success {
+  border: 1px solid #2ecc71;
+  background-color: #d4edda;
+  padding: 0.5em;
+  border-radius: 5px;
+}
+
+/* Add border and background color to error messages */
+.form-message {
+  border: 1px solid #e74c3c;
+  background-color: #f8d7da;
+  padding: 0.5em;
+  border-radius: 5px;
+}
+
+/* Add animation to form header */
+.form-header h2 {
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}</style>
+</head>
+<body>
+  <header>
+    <h1>Al-Faris-Wallet</h1>
+  </header>
+  <main>
+    <div class="form-container">
+      <div class="form-header">
+        <h2>Register</h2>
+        <p>Already have an account? <button id="login-toggle">Log in</button></p>
+      </div>
+      <form id="register-form">
+        <div class="form-group">
+          <label for="username">Username:</label>
+          <input type="text" id="username" name="username" required>
         </div>
-      </section>
+        <div class="form-group">
+          <label for="email">Email:</label>
+          <input type="email" id="email" name="email" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Password:</label>
+          <input type="password" id="password" name="password" required>
+        </div>
+        <button type="submit" id="register-button">Register</button>
+        <p class="form-message" id="register-message"></p>
+      </form>
 
-      <section id="login-section" style="display:none">
-        <h2>Login</h2>
-        <form id="login-form" autocomplete="off">
-          <div>
-            <label for="login-email">Email:</label>
-            <input type="email" id="login-email" name="email" required>
-          </div>
+      <form id="login-form" class="hidden">
+        <div class="form-header">
+          <h2>Log in</h2>
+          <p>Don't have an account? <button id="register-toggle">Register</button></p>
+        </div>
+        <div class="form-group">
+          <label for="email-login">Email:</label>
+          <input type="email" id="email-login" name="email" required>
+        </div>
+        <div class="form-group">
+          <label for="password-login">Password:</label>
+          <input type="password" id="password-login" name="password" required>
+        </div>
+        <button type="submit" id="login-button">Log in</button>
+        <p class="form-message" id="login-message"></p>
+      </form>
+    </div>
 
-          <div>
-            <label for="login-password">Password:</label>
-            <input type="password" id="login-password" name="password" required>
-          </div>
-
-          <div>
-            <button type="submit">Login</button>
-          </div>
-        </form>
-      </section>
-
-      <section id="balance" style="display:none">
+    <div class="balance-container">
+      <div class="balance-header">
         <h2>Balance</h2>
-        <div>
-          <fieldset aria-describedby="balance-description">
-            <legend>Current Balance</legend>
-            <div>
-              <label for="balance-amount">Amount:</label>
-              <input type="number" id="balance-amount" name="balance" min="0" required readonly step="0.01">
-              <span id="balance-amount-description" aria-label="Balance amount is displayed in TRX"></span>
-            </div>
-          </fieldset>
-        </div>
-      </section>
+      </div>
+      <div class="balance-display">
+        <p class="balance-amount">$0.00</p>
+      </div>
+      <button id="balance-button">Refresh Balance</button>
+      <p class="balance-message" id="balance-message"></p>
+    </div>
 
-      <section id="deposit-form" style="display:none">
-        <h2>Deposit</h2>
-        <form autocomplete="off">
-          <fieldset aria-describedby="deposit-description">
-            <legend>Deposit Amount</legend>
-            <div>
-              <label for="deposit-amount">Amount:</label>
-              <input type="number" id="deposit-amount" name="amount" min="0" required step="0.01">
+    <div class="transaction-container">
+      <div class="transaction-header">
+        <h2>Transaction</h2>
+      </div>
+      <div class="transaction-forms">
+        <form id="deposit-form">
+          <div class="form-group">
+            <label for="amount-deposit">Amount:</label>
+            <div class="input-group">
+              <span class="input-group-addon">$</span>
+              <input type="number" id="amount-deposit" name="amount" required>
             </div>
-          </fieldset>
-
-          <div>
-            <button type="submit">Deposit</button>
           </div>
+          <button type="submit" id="deposit-button">Deposit</button>
+          <p class="form-message" id="deposit-message"></p>
         </form>
-      </section>
 
-      <section id="deposit-qr" style="display:none">
-        <h2>Deposit Address</h2>
-        <div>
-          <img id="qr-code" alt="QR Code">
-        </div>
-      </section>
-
-      <section id="withdraw-form" style="display:none">
-        <h2>Withdraw</h2>
-        <form autocomplete="off">
-          <fieldset aria-describedby="withdraw-description">
-            <legend>Withdraw Amount</legend>
-            <div>
-              <label for="withdraw-amount">Amount:</label>
-              <input type="number" id="withdraw-amount" name="amount" min="0" required step="0.01">
+        <form id="withdraw-form">
+          <div class="form-group">
+            <label for="amount-withdraw">Amount:</label>
+            <div class="input-group">
+              <span class="input-group-addon">$</span>
+              <input type="number" id="amount-withdraw" name="amount" required>
             </div>
-          </fieldset>
-
-          <div>
-            <button type="submit">Withdraw</button>
           </div>
+          <button type="submit" id="withdraw-button">Withdraw</button>
+          <p class="form-message" id="withdraw-message"></p>
         </form>
-      </section>
-    </main>
-
-    <footer>
-      <script type="module" src="app.js"></script>
-      <script>
-        const loginButton = document.getElementById('login-button');
-        const registerSection = document.querySelector('section:first-of-type');
-        const loginSection = document.getElementById('login-section');
-
-        loginButton.addEventListener('click', () => {
-          registerSection.style.display = 'none';
-          loginSection.style.display = 'block';
-        });
-      </script>
-    </footer>
-  </body>
-  </html>
+      </div>
+    </div>
+  </main>
+      
+  <script src="script.js"></script>
+</body>
+</html>
