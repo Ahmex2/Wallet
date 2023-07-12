@@ -11,9 +11,10 @@ const morgan = require('morgan');
 const validator = require('validator');
 const dotenv = require('dotenv');
 
+const app = express();
+
 dotenv.config();
 
-const app = express();
 const port = process.env.PORT || 8000;
 const uri = process.env.MONGODB_URI || 'mongodb+srv://mantooman040:Mhmd@Mhmd012@elfares.cfrqkfi.mongodb.net/?retryWrites=true&w=majority';
 const jwtSecret = process.env.JWT_SECRET || 'eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY4ODMxOTMwOCwiaWF0IjoxNjg4MzE5MzA';
@@ -51,13 +52,19 @@ const coinpaymentsClient = new Coinpayments({
 });
 
 app.use(bodyParser.json());
-app.use(cors());
-app.use(express.static('public'));
+const corsOptions = {
+  origin: 'http://localhost:3000',
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type'],
+};
+//enable cors option
+app.use(cors(corsOptions));
+app.use(express.static('frontend'));
 app.use(helmet());
 app.use(morgan('combined'));
 
 app.get('/', (req, res) => {
-  res.send('Welcome to e-Wallet API');
+  res.send('Welcome to Al-Faris-Wallet API');
 });
 
 const createToken = (user) => {
@@ -98,21 +105,29 @@ app.post('/register', apiLimiter, async (req, res) => {
   }
 
   if (!validator.isEmail(email)) {
-    return res.status(400).json({ error: 'Invalid email' });
+    return res.status(400).json({ error: 'Invalidemail address' });
   }
 
   const existingUser = await db.collection('users').findOne({ email });
   if (existingUser) {
-    return res.status(400).json({ error: 'User already exists' });
+    return res.status(400).json({ error: 'Email already registered' });
   }
 
   const hashedPassword = await hashPassword(password);
-  const user = { username, email, password: hashedPassword, balance: 0 };
-  const result = await db.collection('users').insertOne(user);
-  const insertedUser = result.ops[0];
 
- const token = createToken(insertedUser);
-  res.status(201).json({ token });
+  const newUser = {
+    username,
+    email,
+    password: hashedPassword,
+  };
+
+  const result = await db.collection('users').insertOne(newUser);
+
+  const user = await db.collection('users').findOne({ _id: result.insertedId });
+
+  const token = createToken(user);
+
+  res.json({ token });
 });
 
 app.post('/login', apiLimiter, async (req, res) => {
@@ -133,90 +148,96 @@ app.post('/login', apiLimiter, async (req, res) => {
   }
 
   const token = createToken(user);
+
   res.json({ token });
 });
 
-app.get('/users/me', verifyToken, async (req, res) => {
-  const user = await db.collection('users').findOne({ _id: ObjectId(req.userId) });
+app.get('/balance', verifyToken, async (req, res) => {
+  const userId = req.userId;
+
+  const user = await db.collection('users').findOne({ _id: ObjectId(userId) });
   if (!user) {
-    return res.status(404).json({ error: 'User not found' });
+    return res.status(401).json({ error: 'User not found' });
   }
 
-  res.json({ username: user.username, email: user.email, balance: user.balance });
+  res.json({ balance: user.balance });
 });
 
-app.post('/transactions/deposit', verifyToken, async (req, res) => {
+app.post('/deposit', verifyToken, async (req, res) => {
+  const userId = req.userId;
   const { amount } = req.body;
-  const user = await db.collection('users').findOne({ _id: ObjectId(req.userId) });
+
+  if (!amount) {
+    return res.status(400).json({ error: 'Missing input fields' });
+  }
+
+  const user = await db.collection('users').findOne({ _id: ObjectId(userId) });
   if (!user) {
-    return res.status(404).json({ error: 'User not found' });
+    return res.status(401).json({ error: 'User not found' });
   }
 
-  if (!amount || amount <= 0) {
-    return res.status(400).json({ error: 'Invalid amount' });
-  }
-
-  const depositResult = await coinpaymentsClient.getCallbackAddress({
-    currency: 'TRX',
-    ipn_url: withdrawalAddress,
-    auto_confirm: 1,
-  });
-
-  if (depositResult.error) {
-    console.error(depositResult.error);
-    return res.status(500).json({ error: 'Coinpayments error' });
-  }
-
-  const depositAddress = depositResult.result.address;
-  const transaction = {
-    type: 'deposit',
+  const depositInfo = {
     amount,
-    status: 'pending',
-    depositAddress,
+    currency1: 'TRX',
+    currency2: 'TRX',
+    address: depositAddress,
   };
-  await db.collection('transactions').insertOne(transaction);
 
-  res.json({ depositAddress });
+  coinpaymentsClient.createTransaction(depositInfo, async (err, transaction) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Failed to create transaction' });
+    }
+
+    const updatedUser = await db.collection('users').findOneAndUpdate(
+      { _id: ObjectId(userId) },
+      { $inc: { balance: amount } },
+      { returnOriginal: false }
+    );
+
+    res.json({ balance: updatedUser.value.balance });
+  });
 });
 
-app.post('/transactions/withdraw', verifyToken, async (req, res) => {
+app.post('/withdraw', verifyToken, async (req, res) => {
+  const userId = req.userId;
   const { amount } = req.body;
-  const user = await db.collection('users').findOne({ _id: ObjectId(req.userId) });
-  if (!user) {
-    return res.status(404).json({ error: 'User not found' });
+
+  if (!amount) {
+    return res.status(400).json({ error: 'Missing input fields' });
   }
 
-  if (!amount || amount <= 0) {
-    return res.status(400).json({ error: 'Invalid amount' });
+  const user = await db.collection('users').findOne({ _id: ObjectId(userId) });
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
   }
 
   if (user.balance < amount) {
     return res.status(400).json({ error: 'Insufficient balance' });
   }
 
-  const withdrawalResult = await coinpaymentsClient.createWithdrawal({
+  const withdrawalInfo = {
+    amount,
     currency: 'TRX',
-    amount,
     address: withdrawalAddress,
-    auto_confirm: 1,
-  });
-
-  if (withdrawalResult.error) {
-    console.error(withdrawalResult.error);
-    return res.status(500).json({ error: 'Coinpayments error' });
-  }
-
-  const transaction = {
-    type: 'withdrawal',
-    amount,
-    status: 'pending',
-    withdrawalAddress,
   };
-  await db.collection('transactions').insertOne(transaction);
 
-  res.json({ message: 'Withdrawal request submitted' });
+  coinpaymentsClient.createWithdrawal(withdrawalInfo, async (err, withdrawal) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Failed to create withdrawal' });
+    }
+
+    const updatedUser = await db.collection('users').findOneAndUpdate(
+      { _id: ObjectId(userId) },
+      { $inc: { balance: -amount } },
+      { returnOriginal: false }
+    );
+
+    res.json({ balance: updatedUser.value.balance });
+  });
 });
 
 app.listen(port, () => {
-  console.log(`App listening at http://localhost:${port}`);
+  console.log(`Server listening on port ${port}`);
 });
